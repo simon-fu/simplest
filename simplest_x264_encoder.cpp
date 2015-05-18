@@ -35,17 +35,47 @@ int main(int argc, char** argv)
 	int ret;
 	int y_size;
 	int i,j;
+    
+    const char * src = "./cuc_ieschool_640x360_yuv420p.yuv";
+    const char * dst = "cuc_ieschool.h264";
+    int width=640,height=360;
+    
+    if(argc >= 2){
+        src = argv[1];
+    }
+    
+    if(argc >= 3){
+        dst = argv[2];
+    }
+    
+    if(argc >= 4){
+        width = atoi(argv[3]);
+    }
+    
+    if(argc >= 5){
+        height = atoi(argv[4]);
+    }
+    
+    
+    printf("src=%s\n", src);
+    printf("dst=%s\n", dst);
+    printf("width=%d\n", width);
+    printf("height=%d\n", height);
 
 	//FILE* fp_src  = fopen("./cuc_ieschool_640x360_yuv444p.yuv", "rb");
-	FILE* fp_src  = fopen("./cuc_ieschool_640x360_yuv420p.yuv", "rb");
-
-	FILE* fp_dst = fopen("cuc_ieschool.h264", "wb");
+//	FILE* fp_src  = fopen("./cuc_ieschool_640x360_yuv420p.yuv", "rb");
+//
+//	FILE* fp_dst = fopen("cuc_ieschool.h264", "wb");
+    
+    FILE* fp_src  = fopen(src, "rb");
+    
+    FILE* fp_dst = fopen(dst, "wb");
 	
 	//Encode 50 frame
 	//if set 0, encode all frame
 	int frame_num=50;
 	int csp=X264_CSP_I420;
-	int width=640,height=360;
+	
 
 	int iNal   = 0;
 	x264_nal_t* pNals = NULL;
@@ -128,7 +158,7 @@ int main(int argc, char** argv)
 			return -1;
 		}
 
-		printf("Succeed encode frame: %5d\n",i);
+//		printf("Succeed encode frame: %5d\n",i);
 
 		for ( j = 0; j < iNal; ++j){
 			 fwrite(pNals[j].p_payload, 1, pNals[j].i_payload, fp_dst);
@@ -141,7 +171,7 @@ int main(int argc, char** argv)
 		if(ret==0){
 			break;
 		}
-		printf("Flush 1 frame.\n");
+		//printf("Flush 1 frame.\n");
 		for (j = 0; j < iNal; ++j){
 			fwrite(pNals[j].p_payload, 1, pNals[j].i_payload, fp_dst);
 		}
