@@ -70,7 +70,7 @@ static int write_frame(AVFormatContext *fmt_ctx, const AVRational *time_base, AV
     av_packet_rescale_ts(pkt, *time_base, st->time_base);
     pkt->stream_index = st->index;
     /* Write the compressed frame to the media file. */
-    log_packet(fmt_ctx, pkt);
+    // log_packet(fmt_ctx, pkt);
     return av_interleaved_write_frame(fmt_ctx, pkt);
 }
 /* Add an output stream. */
@@ -503,11 +503,15 @@ int main(int argc, char **argv)
     /* Add the audio and video streams using the default format codecs
      * and initialize the codecs. */
     if (fmt->video_codec != AV_CODEC_ID_NONE) {
+        fmt->video_codec = AV_CODEC_ID_H264; // simon
+        printf("video codec %d\n", fmt->video_codec);
         add_stream(&video_st, oc, &video_codec, fmt->video_codec);
         have_video = 1;
         encode_video = 1;
     }
     if (fmt->audio_codec != AV_CODEC_ID_NONE) {
+        fmt->audio_codec = AV_CODEC_ID_MP3; // simon
+        printf("audio codec %d\n", fmt->audio_codec);
         add_stream(&audio_st, oc, &audio_codec, fmt->audio_codec);
         have_audio = 1;
         encode_audio = 1;

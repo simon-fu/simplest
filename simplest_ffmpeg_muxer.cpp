@@ -60,6 +60,28 @@ FIX:AAC in some container format (FLV, MP4, MKV etc.) need
 #define USE_AACBSF 0
 
 
+static
+void dump_codec_ctx(const char * pre, AVCodecContext * c)
+{
+	printf("%s c->codec_id=%d\n", pre, c->codec_id);
+	printf("%s c->width=%d\n", pre, c->width);
+	printf("%s c->height=%d\n", pre, c->height);
+	printf("%s c->time_base.den=%d\n", pre, c->time_base.den);
+	printf("%s c->time_base.num=%d\n", pre, c->time_base.num);
+	printf("%s c->pix_fmt=%d\n", pre, c->pix_fmt);
+	printf("%s c->bit_rate=%d\n", pre, c->bit_rate);
+
+	printf("%s c->sample_rate=%d\n", pre, c->sample_rate);
+	printf("%s c->channels=%d\n", pre, c->channels);
+	printf("%s c->frame_size=%d\n", pre, c->frame_size);
+	printf("%s c->channel_layout=%llu\n", pre, c->channel_layout);
+	printf("%s c->sample_fmt=%d\n", pre, c->sample_fmt);
+	printf("%s c->audio_service_type=%d\n", pre, c->audio_service_type);
+	printf("%s c->block_align=%d\n", pre, c->block_align);
+	printf("%s c->codec_tag=%d\n", pre, c->codec_tag);
+
+}
+
 
 int main(int argc, char* argv[])
 {
@@ -100,6 +122,8 @@ int main(int argc, char* argv[])
 		printf( "Failed to retrieve input stream information");
 		goto end;
 	}
+
+
 	printf("===========Input Information==========\n");
 	av_dump_format(ifmt_ctx_v, 0, in_filename_v, 0);
 	av_dump_format(ifmt_ctx_a, 0, in_filename_a, 0);
@@ -133,7 +157,11 @@ int main(int argc, char* argv[])
 		out_stream->codec->codec_tag = 0;
 		if (ofmt_ctx->oformat->flags & AVFMT_GLOBALHEADER)
 			out_stream->codec->flags |= CODEC_FLAG_GLOBAL_HEADER;
+
+		dump_codec_ctx("video", out_stream->codec);
 		break;
+
+		
 		}
 	}
 
@@ -157,6 +185,8 @@ int main(int argc, char* argv[])
 			out_stream->codec->codec_tag = 0;
 			if (ofmt_ctx->oformat->flags & AVFMT_GLOBALHEADER)
 				out_stream->codec->flags |= CODEC_FLAG_GLOBAL_HEADER;
+
+			dump_codec_ctx("audio", out_stream->codec);
 
 			break;
 		}
@@ -206,6 +236,7 @@ int main(int argc, char* argv[])
 						//FIX£ºNo PTS (Example: Raw H.264)
 						//Simple Write PTS
 						if(pkt.pts==AV_NOPTS_VALUE){
+							// printf("video input => no pts\n");
 							//Write PTS
 							AVRational time_base1=in_stream->time_base;
 							//Duration between 2 frames (us)
@@ -215,8 +246,10 @@ int main(int argc, char* argv[])
 							pkt.dts=pkt.pts;
 							pkt.duration=(double)calc_duration/(double)(av_q2d(time_base1)*AV_TIME_BASE);
 							frame_index++;
+						}else{
+							// printf("video input => has pts\n");
 						}
-
+						printf("video: pts=%lld\n", pkt.pts);
 						cur_pts_v=pkt.pts;
 						break;
 					}
@@ -237,6 +270,7 @@ int main(int argc, char* argv[])
 						//FIX£ºNo PTS
 						//Simple Write PTS
 						if(pkt.pts==AV_NOPTS_VALUE){
+							// printf("audio input => no pts");
 							//Write PTS
 							AVRational time_base1=in_stream->time_base;
 							//Duration between 2 frames (us)
@@ -246,7 +280,11 @@ int main(int argc, char* argv[])
 							pkt.dts=pkt.pts;
 							pkt.duration=(double)calc_duration/(double)(av_q2d(time_base1)*AV_TIME_BASE);
 							frame_index++;
+						}else{
+							// printf("audio input => has pts\n");
 						}
+						printf("audio: pts=%lld\n", pkt.pts);
+
 						cur_pts_a=pkt.pts;
 
 						break;
